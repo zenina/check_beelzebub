@@ -1,0 +1,91 @@
+#!/bin/bash
+return_nrpe(){ 
+		return=$1
+		shift 1
+		message="$@"
+		echo "$message"
+		exit $return
+}
+
+parseopts(){
+options=':w:c:t:'
+
+cflag=false
+wflag=false
+tflag=false
+while getopts $options opt; do
+  case $opt in
+    	w)
+		echo "-w warning threshold set at $OPTARG" >&2
+		wval=${OPTARG}
+		wflag=true
+		;;
+
+	c)
+		echo "-c warning threshold set at $OPTARG" >&2
+                cval=${OPTARG}
+		cflag=true
+		;;
+	
+	t)
+		echo "-c time period set at $OPTARG" >&2
+                tval=${OPTARG}
+		tflag=true
+		;;
+	\?)
+		echo "Invalid option: -$OPTARG" >&2
+		return_nrpe 2
+		;;
+
+	:  ) 
+		echo "Missing option argument for -$OPTARG" >&2
+		return_nrpe 2
+		;;
+
+	*  ) 
+		echo "Unimplemented option: -$OPTARG" >&2
+		return_nrpe 2
+		;;
+  esac
+done
+
+## Require flags, and numeric arguments for $OPTARG
+if ! $wflag && ! [[ $wval =~ ^-?[0-9]+$ ]];
+then
+    echo "-w warning_threshold must be specified with integer argument" >&2
+    return_nrpe 2
+fi
+if ! $cflag && ! [[ $cval =~ ^-?[0-9]+$ ]];
+then
+    echo "-c critical_threshold must be specified with integer argument" >&2
+    return_nrpe 2
+fi
+if ! $tflag && ! [[ $tval =~ ^-?[0-9]+$ ]];
+then
+    echo "-t timeframe must be specified with argument in seconds" >&2
+    return_nrpe 2
+fi
+
+}
+
+checkResponse(){
+while read line ;
+	do 
+	declare -A curlarr
+	curlarr=(${line})
+	for a in ${curlarr[*]} ;
+		do
+		echo "${curlarr[#]} : ${a}"
+		done
+	done< 
+}
+
+checkTx(){
+min=$(echo $wval_check $cval_check | awk '{if ($1 < $2) print $1; else print $2}')
+
+}
+
+
+
+checkResponse
+checkResponseThreshold

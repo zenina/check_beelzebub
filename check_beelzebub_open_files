@@ -1,0 +1,71 @@
+#!/bin/bash
+ 
+server="http://localhost:8080"
+
+
+options=':w:c:'
+
+cflag=false
+wflag=false
+
+while getopts $options opt; do
+  case $opt in
+    	w)
+		echo "-w warning threshold set at $OPTARG" >&2
+		wval=${OPTARG}
+		wflag=true
+		;;
+
+	c)
+		echo "-c warning threshold set at $OPTARG" >&2
+                cval=${OPTARG}
+		cflag=true
+		;;
+	\?)
+		echo "Invalid option: -$OPTARG" >&2
+		;;
+
+	:  ) 
+		echo "Missing option argument for -$OPTARG" >&2
+		exit 1
+		;;
+
+	*  ) 
+		echo "Unimplemented option: -$OPTARG" >&2
+		exit 1
+		;;
+  esac
+done
+
+if ! $wflag && ! [[ $wval =~ ^-?[0-9]+$ ]];
+then
+    echo "-w warning_threshold must be specified with integer argument" >&2
+    exit 1
+fi
+if ! $cflag && ! [[ $cval =~ ^-?[0-9]+$ ]];
+then
+    echo "-c critical_threshold must be specified with integer argument" >&2
+    exit 1
+fi
+
+
+checkResponse(){
+while read line ;
+	do 
+	declare -A curlarr
+	curlarr=(${line})
+	for a in ${curlarr[*]} ;
+		do
+		echo "${curlarr[#]} : ${a}"
+		done
+	done< \
+<( curl -s -w '\nLookup time:\t%{time_namelookup}\nConnect time:\t%{time_connect}\nPreXfer time:\t%{time_pretransfer}\nStartXfer time:\t%{time_starttransfer}\n\nTotal time:\t%{time_total}\n' -o /dev/null ${server} )
+}
+
+checkResponseThreshold(){
+min=$(echo $wval_check $cval_check | awk '{if ($1 < $2) print $1; else print $2}')
+
+}
+
+checkResponse
+checkResponseThreshold
