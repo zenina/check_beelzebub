@@ -1,4 +1,7 @@
 #!/bin/bash
+
+server="http://localhost:8080"
+siege="/usr/bin/siege"
 return_nrpe(){ 
 		return=$1
 		shift 1
@@ -7,12 +10,14 @@ return_nrpe(){
 		exit $return
 }
 
-parseopts(){
-options=':w:c:t:'
+parseOpts(){
+options=':w:c:t:s:'
 
 cflag=false
 wflag=false
 tflag=false
+sflag=true
+sval=3
 while getopts $options opt; do
   case $opt in
     	w)
@@ -28,9 +33,14 @@ while getopts $options opt; do
 		;;
 	
 	t)
-		echo "-c time period set at $OPTARG" >&2
+		echo "-t time period set at $OPTARG" >&2
                 tval=${OPTARG}
 		tflag=true
+		;;
+	s)
+		echo "-s concurrent sessions for siege set at $OPTARG (default: 3)" >&2
+                sval=${OPTARG}
+		sflag=true
 		;;
 	\?)
 		echo "Invalid option: -$OPTARG" >&2
@@ -68,24 +78,29 @@ fi
 
 }
 
-checkResponse(){
-while read line ;
-	do 
-	declare -A curlarr
-	curlarr=(${line})
-	for a in ${curlarr[*]} ;
-		do
-		echo "${curlarr[#]} : ${a}"
-		done
-	done< 
+runSiege(){
+
+scmd="siege -q -c${sval} -t${tval}s -v ${server}"
+# Check that our dependency, siege, is installed, and executable
+  eval ${scmd} 2>&1 > /dev/null || {
+	return_nrpe 2 "[CRITICAL] Could not run siege command ${scmd}"
+	} && {
+		resptime="$(eval $scmd | grep "Response time" | awk '{print $3}')"
+		echo ${resptime}
+		resptime="5.4"
+	} && {
+		# Compare response time value to thresholds using expression floating point conditional operater
+ 		if $( expr ${resptime} '<=' ${wval} ) ; then 
+			return_nrpe 0 "[GREEN] Response Time (avg < ${wval} ): ${resptime}"
+#		elif [[ expr ${resptime} >= ${wval} ]] && [[ expr ${avgresptime} <= ${cval} ]] ; then
+			return_nrpe 1 "[WARNING]: Response Time (avg > ${wval} ): ${resptime}"
+		elif eval expr ${resptime} '>=' ${cval} ; then
+			return_nrpe 2 "[CRITICAL]: Response Time (avg > ${cval} ): ${resptime}"
+		fi 
+	}
 }
 
-checkTx(){
-min=$(echo $wval_check $cval_check | awk '{if ($1 < $2) print $1; else print $2}')
 
-}
+parseOpts $@
+runSiege
 
-
-
-checkResponse
-checkResponseThreshold
