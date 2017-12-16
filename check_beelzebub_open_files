@@ -1,13 +1,22 @@
 #!/bin/bash
- 
-server="http://localhost:8080"
+return_nrpe(){ 
+		return="$1"
+		shift 1
+		message="$@"
+		echo "$message"
 
+		if [[ -n $return ]]; then
+		exit 0 
+		else
+		exit $return
+		fi
+}
 
-options=':w:c:'
+parseOpts(){
+options=':w:c:t:'
 
 cflag=false
 wflag=false
-
 while getopts $options opt; do
   case $opt in
     	w)
@@ -21,51 +30,58 @@ while getopts $options opt; do
                 cval=${OPTARG}
 		cflag=true
 		;;
+	
 	\?)
 		echo "Invalid option: -$OPTARG" >&2
+		return_nrpe 2
 		;;
 
 	:  ) 
 		echo "Missing option argument for -$OPTARG" >&2
-		exit 1
+		return_nrpe 2
 		;;
 
 	*  ) 
 		echo "Unimplemented option: -$OPTARG" >&2
-		exit 1
+		return_nrpe 2
 		;;
   esac
 done
 
+## Require flags, and numeric arguments for $OPTARG
 if ! $wflag && ! [[ $wval =~ ^-?[0-9]+$ ]];
 then
-    echo "-w warning_threshold must be specified with integer argument" >&2
-    exit 1
+    return_nrpe 2 "-w warning_threshold must be specified with integer argument"
+    
 fi
 if ! $cflag && ! [[ $cval =~ ^-?[0-9]+$ ]];
 then
-    echo "-c critical_threshold must be specified with integer argument" >&2
-    exit 1
+    return_nrpe 2 "-c critical_threshold must be specified with integer argument"
 fi
 
-
-checkResponse(){
-while read line ;
-	do 
-	declare -A curlarr
-	curlarr=(${line})
-	for a in ${curlarr[*]} ;
-		do
-		echo "${curlarr[#]} : ${a}"
-		done
-	done< \
-<( curl -s -w '\nLookup time:\t%{time_namelookup}\nConnect time:\t%{time_connect}\nPreXfer time:\t%{time_pretransfer}\nStartXfer time:\t%{time_starttransfer}\n\nTotal time:\t%{time_total}\n' -o /dev/null ${server} )
 }
 
-checkResponseThreshold(){
-min=$(echo $wval_check $cval_check | awk '{if ($1 < $2) print $1; else print $2}')
 
+checkFileCount(){
+echo checkcnt
+fileCount=$(lsof | grep beelzebub | egrep '.*'.yaml'$' | wc -l)
+echo $fileCount
+if [[ -n "${fileCount}" ]]; then
+	if [[ "${fileCount}" -lt "${wval}" ]]; then
+		echo green
+		return_nrpe 0 "[GREEN]: Transaction file count ${fileCount} (< ${wval})"
+	elif [[ "${fileCount}" -ge "${wval}" ]] && [[ "${fileCount}" -le "${cval}" ]]; then
+		echo warning
+		return_nrpe 1 "[WARNING]: Transaction file count ${fileCount} (> ${wval})"
+	elif [[ "${fileCount}" -ge "${cval}" ]]; then
+		echo critical
+		return_nrpe 2 "[CRITICAL]: Transaction file count ${fileCount} (> ${cval})"
+	fi	
+elif [[ -z "${fileCount}" ]]; then
+	echo "No data"
+	return_nrpe 2 "[CRITICAL]: No Transaction file count data"
+fi
 }
 
-checkResponse
-checkResponseThreshold
+parseOpts $@
+checkFileCount
