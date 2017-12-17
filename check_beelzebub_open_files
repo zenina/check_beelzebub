@@ -1,4 +1,14 @@
 #!/bin/bash
+# check_beelzebub_open_files
+
+# set default thresholds. These will be overwritten if arguments are passed through the cli
+
+# warning threshold
+wval=20
+
+# critical threshold
+cval=50
+
 return_nrpe(){ 
 		return="$1"
 		shift 1
@@ -79,7 +89,10 @@ elif [[ -z "${fileCount}" ]]; then
 fi
 }
 
-## Pass in threshold flags to parseOpts. 
-# This can be replaced with $@ if you'd rather pass them through the commandline, however nrpe has some issues handling command args when I tested this
-parseOpts -w10 -c30
+## If options passed, push them through to getopts, else use defaults
+if [[ $# -gt 0 ]]; then
+	parseOpts $@
+else
+	parseOpts -w ${wval} -c ${cval}
+fi
 checkFileCount

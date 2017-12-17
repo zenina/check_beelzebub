@@ -1,7 +1,23 @@
 #!/bin/bash
+# check_beelzebub_tx_response_time
 
+# set default thresholds. These will be overwritten if arguments are passed on the cli
+
+# warning threshold
+wval=2
+# critical threshold
+cval=5
+# timeframe in sec
+tval=5
+# number of sessions to siege/benchmark
+sval=5
+# server address for siege to test transaction response time against
 server="http://localhost:8080"
+
+# siege location
 siege="/usr/bin/siege"
+
+
 return_nrpe(){ 
 		return=$1
 		shift 1
@@ -99,8 +115,11 @@ scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 }
 
 
-## Pass in threshold flags to parseOpts. 
-# This can be replaced with $@ if you'd rather pass them through the commandline, however nrpe has some issues handling command args when I tested this
-parseOpts -w 4 -c 10 -t 5 -s 5
+## If options passed, push them through to getopts, else use defaults
+if [[ $# -gt 0 ]]; then
+	parseOpts $@
+else
+	parseOpts -w ${wval} -c ${cval} -t ${tval} -s ${sval}
+fi
 runSiege
 
