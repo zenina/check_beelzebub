@@ -99,7 +99,8 @@ scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 }
 
 
-#parseOpts -w 4 -c 10 -t 5 -s 5
-parseOpts $@
+## Pass in threshold flags to parseOpts. 
+# This can be replaced with $@ if you'd rather pass them through the commandline, however nrpe has some issues handling command args when I tested this
+parseOpts -w 4 -c 10 -t 5 -s 5
 runSiege
 

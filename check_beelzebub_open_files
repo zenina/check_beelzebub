@@ -68,16 +68,18 @@ Dtag='\e[39m'
 fileCount=$(lsof | grep beelzebub | egrep '.*'.yaml'$' | wc -l)
 if [[ -n "${fileCount}" ]]; then
 	if [[ "${fileCount}" -lt "${wval}" ]]; then
-		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): ${fileCount}${Dtag} | File Count: ${fileCount}"
+		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): | ${fileCount}${Dtag}"
 	elif [[ "${fileCount}" -ge "${wval}" ]] && [[ "${fileCount}" -le "${cval}" ]]; then
-		return_nrpe 1 "${Ytag}[WARNING]: Transaction file count (> ${wval}): ${fileCount}${Dtag} | File Count: ${fileCount}"
+		return_nrpe 1 "${Ytag}[WARNING]: Transaction file count (> ${wval}) | ${fileCount}${Dtag}"
 	elif [[ "${fileCount}" -ge "${cval}" ]]; then
-		return_nrpe 2 "${Rtag}[CRITICAL]: Transaction file count (> ${cval}): ${fileCount}${Dtaga} | File Count: ${fileCount}"
+		return_nrpe 2 "${Rtag}[CRITICAL]: Transaction file count (> ${cval}) | ${fileCount}${Dtaga}"
 	fi	
 elif [[ -z "${fileCount}" ]]; then
 	return_nrpe 2 "[CRITICAL]: No Transaction file count data"
 fi
 }
 
+## Pass in threshold flags to parseOpts. 
+# This can be replaced with $@ if you'd rather pass them through the commandline, however nrpe has some issues handling command args when I tested this
 parseOpts -w10 -c30
 checkFileCount
