@@ -6,7 +6,7 @@ return_nrpe(){
 		return=$1
 		shift 1
 		message="$@"
-		echo "$message"
+		echo -e "$message"
 		exit $return
 }
 
@@ -79,6 +79,10 @@ fi
 }
 
 runSiege(){
+Gtag='\e[92m'
+Ytag='\e[93m'
+Rtag='\e[31m'
+Dtag='\e[39m'
 
 scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 # Check that our dependency, siege, is installed, and executable
@@ -90,11 +94,11 @@ scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 	} && {
 		# Compare response time value to thresholds using expression floating point conditional operater
  		if expr ${resptime} '<=' ${wval} ; then 
-			return_nrpe 0 "[GREEN] Response Time (avg < ${wval} ): ${resptime}"
+			return_nrpe 0 "${Gtag}[GREEN] Response Time (avg < ${wval} ): ${resptime}${Dtag}"
 		elif expr ${resptime} '>=' ${wval} && expr ${resptime} '<=' ${cval} ; then
-			return_nrpe 1 "[WARNING]: Response Time (avg > ${wval} ): ${resptime}"
+			return_nrpe 1 "${Ytag}[WARNING]: Response Time (avg > ${wval} ): ${resptime}${Dtag}"
 		elif expr ${resptime} '>=' ${cval} ; then
-			return_nrpe 2 "[CRITICAL]: Response Time (avg > ${cval} ): ${resptime}"
+			return_nrpe 2 "${Rtag}[CRITICAL]: Response Time (avg > ${cval} ): ${resptime}${Dtag}"
 		fi
 	}
 }

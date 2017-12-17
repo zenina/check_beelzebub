@@ -3,7 +3,7 @@ return_nrpe(){
 		return="$1"
 		shift 1
 		message="$@"
-		echo "$message"
+		echo -e "$message"
 
 		if [[ -n $return ]]; then
 		exit 0 
@@ -63,19 +63,18 @@ fi
 
 
 checkFileCount(){
-echo checkcnt
+Gtag='\e[92m'
+Ytag='\e[93m'
+Rtag='\e[31m'
+Dtag='\e[39m'
 fileCount=$(lsof | grep beelzebub | egrep '.*'.yaml'$' | wc -l)
-echo $fileCount
 if [[ -n "${fileCount}" ]]; then
 	if [[ "${fileCount}" -lt "${wval}" ]]; then
-		echo green
-		return_nrpe 0 "[GREEN]: Transaction file count ${fileCount} (< ${wval})"
+		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): ${fileCount}${Dtag}"
 	elif [[ "${fileCount}" -ge "${wval}" ]] && [[ "${fileCount}" -le "${cval}" ]]; then
-		echo warning
-		return_nrpe 1 "[WARNING]: Transaction file count ${fileCount} (> ${wval})"
+		return_nrpe 1 "${Ytag}[WARNING]: Transaction file count (> ${wval}): ${fileCount}${Dtag}"
 	elif [[ "${fileCount}" -ge "${cval}" ]]; then
-		echo critical
-		return_nrpe 2 "[CRITICAL]: Transaction file count ${fileCount} (> ${cval})"
+		return_nrpe 2 "${Rtag}[CRITICAL]: Transaction file count (> ${cval}): ${fileCount}${Dtag}"
 	fi	
 elif [[ -z "${fileCount}" ]]; then
 	echo "No data"
