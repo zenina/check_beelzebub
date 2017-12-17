@@ -82,21 +82,20 @@ runSiege(){
 
 scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 # Check that our dependency, siege, is installed, and executable
-  eval ${scmd} 2>&1 > /dev/null || {
+ ${scmd} > /dev/null 2>&1 || {
 	return_nrpe 2 "[CRITICAL] Could not run siege command ${scmd}"
 	} && {
-		resptime="$(eval $scmd | grep "Response time" | awk '{print $3}')"
+		resptime="$(${scmd} 2>&1 | grep "Response time" | awk '{print $3}')"
 		echo ${resptime}
-		resptime="5.4"
 	} && {
 		# Compare response time value to thresholds using expression floating point conditional operater
- 		if $( expr ${resptime} '<=' ${wval} ) ; then 
+ 		if expr ${resptime} '<=' ${wval} ; then 
 			return_nrpe 0 "[GREEN] Response Time (avg < ${wval} ): ${resptime}"
-#		elif [[ expr ${resptime} >= ${wval} ]] && [[ expr ${avgresptime} <= ${cval} ]] ; then
+		elif expr ${resptime} '>=' ${wval} && expr ${resptime} '<=' ${cval} ; then
 			return_nrpe 1 "[WARNING]: Response Time (avg > ${wval} ): ${resptime}"
-		elif eval expr ${resptime} '>=' ${cval} ; then
+		elif expr ${resptime} '>=' ${cval} ; then
 			return_nrpe 2 "[CRITICAL]: Response Time (avg > ${cval} ): ${resptime}"
-		fi 
+		fi
 	}
 }
 
