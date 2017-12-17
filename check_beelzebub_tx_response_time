@@ -21,24 +21,20 @@ sval=3
 while getopts $options opt; do
   case $opt in
     	w)
-		echo "-w warning threshold set at $OPTARG" >&2
 		wval=${OPTARG}
 		wflag=true
 		;;
 
 	c)
-		echo "-c warning threshold set at $OPTARG" >&2
                 cval=${OPTARG}
 		cflag=true
 		;;
 	
 	t)
-		echo "-t time period set at $OPTARG" >&2
                 tval=${OPTARG}
 		tflag=true
 		;;
 	s)
-		echo "-s concurrent sessions for siege set at $OPTARG (default: 3)" >&2
                 sval=${OPTARG}
 		sflag=true
 		;;
@@ -90,20 +86,20 @@ scmd="siege -q -c${sval} -t${tval}s -v ${server}"
 	return_nrpe 2 "[CRITICAL] Could not run siege command ${scmd}"
 	} && {
 		resptime="$(${scmd} 2>&1 | grep "Response time" | awk '{print $3}')"
-		echo ${resptime}
 	} && {
 		# Compare response time value to thresholds using expression floating point conditional operater
- 		if expr ${resptime} '<=' ${wval} ; then 
-			return_nrpe 0 "${Gtag}[GREEN] Response Time (avg < ${wval} ): ${resptime}${Dtag}"
-		elif expr ${resptime} '>=' ${wval} && expr ${resptime} '<=' ${cval} ; then
-			return_nrpe 1 "${Ytag}[WARNING]: Response Time (avg > ${wval} ): ${resptime}${Dtag}"
-		elif expr ${resptime} '>=' ${cval} ; then
-			return_nrpe 2 "${Rtag}[CRITICAL]: Response Time (avg > ${cval} ): ${resptime}${Dtag}"
+ 		if expr ${resptime} '<=' ${wval} >/dev/null; then 
+			return_nrpe 0 "${Gtag}[GREEN] Response Time (avg < ${wval}) | ${resptime}${Dtag}"
+		elif expr ${resptime} '>=' ${wval} >/dev/null  && expr ${resptime} '<=' ${cval} >/dev/null ; then
+			return_nrpe 1 "${Ytag}[WARNING]: Response Time (avg > ${wval}) | ${resptime}${Dtag}"
+		elif expr ${resptime} '>=' ${cval} >/dev/null ; then
+			return_nrpe 2 "${Rtag}[CRITICAL]: Response Time (avg > ${cval}) | ${resptime}${Dtag}"
 		fi
 	}
 }
 
 
+#parseOpts -w 4 -c 10 -t 5 -s 5
 parseOpts $@
 runSiege
 

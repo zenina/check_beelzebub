@@ -3,8 +3,8 @@ return_nrpe(){
 		return="$1"
 		shift 1
 		message="$@"
-		echo -e "$message"
 
+		echo -e "$message"
 		if [[ -n $return ]]; then
 		exit 0 
 		else
@@ -20,13 +20,11 @@ wflag=false
 while getopts $options opt; do
   case $opt in
     	w)
-		echo "-w warning threshold set at $OPTARG" >&2
 		wval=${OPTARG}
 		wflag=true
 		;;
 
 	c)
-		echo "-c warning threshold set at $OPTARG" >&2
                 cval=${OPTARG}
 		cflag=true
 		;;
@@ -70,17 +68,16 @@ Dtag='\e[39m'
 fileCount=$(lsof | grep beelzebub | egrep '.*'.yaml'$' | wc -l)
 if [[ -n "${fileCount}" ]]; then
 	if [[ "${fileCount}" -lt "${wval}" ]]; then
-		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): ${fileCount}${Dtag}"
+		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): ${fileCount}${Dtag} | File Count: ${fileCount}"
 	elif [[ "${fileCount}" -ge "${wval}" ]] && [[ "${fileCount}" -le "${cval}" ]]; then
-		return_nrpe 1 "${Ytag}[WARNING]: Transaction file count (> ${wval}): ${fileCount}${Dtag}"
+		return_nrpe 1 "${Ytag}[WARNING]: Transaction file count (> ${wval}): ${fileCount}${Dtag} | File Count: ${fileCount}"
 	elif [[ "${fileCount}" -ge "${cval}" ]]; then
-		return_nrpe 2 "${Rtag}[CRITICAL]: Transaction file count (> ${cval}): ${fileCount}${Dtag}"
+		return_nrpe 2 "${Rtag}[CRITICAL]: Transaction file count (> ${cval}): ${fileCount}${Dtaga} | File Count: ${fileCount}"
 	fi	
 elif [[ -z "${fileCount}" ]]; then
-	echo "No data"
 	return_nrpe 2 "[CRITICAL]: No Transaction file count data"
 fi
 }
 
-parseOpts $@
+parseOpts -w10 -c30
 checkFileCount
