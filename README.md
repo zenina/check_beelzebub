@@ -50,8 +50,8 @@ $ apt-get install siege
 # copy scripts to nrpe client
 $ scp check_beelzebub_metrics.tgz nrpe-client:
 
-# unpack into /usr/local/nagios/libexec
-$ tar -xvzPf check_beelzebub_metrics.tgz
+# unpack into /usr/local/nagios/libexec/
+$ tar -xvzf ~/check_beelzebub.tgz -C /usr/local/nagios/libexec
 
 # Edit the threshold flags
 # test/run the scripts on the client standalone
