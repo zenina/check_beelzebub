@@ -6,6 +6,9 @@ check_beelzebub_tx_response_time : Monitor the transaction response time with si
 
 ## Example
 
+These check scripts can be called with or with out arguments. If no arguments are specified they will use the defaults defined at the top of the script. 
+If the threshold flags are passed through, they will overwrite the defaults.
+
 ```bash
 # check_beelzebub_open_files -w <warn threshold> -c <critical threshold> 
 $ ./check_beelzebub_open_files -w 100 -c 300 
@@ -26,6 +29,7 @@ $ ./check_beelzebub_tx_response_time -w 5 -c 10 -t 10 -s 5
 ### Prerequisites
 
 Requirements:
+- Bash
 - siege (An HTTP/HTTPS stress tester for benchmarking unicorn)
 - nagios-nrpe-server ( Nagios nrpe server for client-side plugins )
 - nagios-plugins-basic ( Nagios plugins )
@@ -35,47 +39,34 @@ Requirements:
 
 - Install siege
 - Install scripts into nrpe
-```
-apt-get install siege
-apt-get install nagios-nrpe-server nagios-plugins-basic
-```
-
-And repeat
+- Configure nrpe/nagios checks
 
 ```
-until finished
-```
+# Install siege on client
+$ apt-get install siege
 
-End with an example of getting some data out of the system or using it for a little demo
+# Install nrpe server on nrpe client using the Nagios NRPE documentation below
 
-## Running the tests
+# copy scripts to nrpe client
+$ scp check_beelzebub_metrics.tgz nrpe-client:
 
-Explain how to run the automated tests for this system
+# unpack into /usr/local/nagios/libexec
+$ tar -xvzPf check_beelzebub_metrics.tgz
 
-### Break down into end to end tests
+# Edit the threshold flags
+# test/run the scripts on the client standalone
+$ /usr/local/nagios/libexec/check_beelzebub_open_files
+$ /usr/local/nagios/libexec/check_beelzebub_tx_files
 
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
+# Configure Nagios with nrpe checks using the nagios NRPE documentation
+ <https://assets.nagios.com/downloads/nagioscore/docs/nrpe/NRPE.pdf>
 ```
 
 ## Deployment
 
 - Install and run beelzebub + unicorn specific to your custom installation. 
-- 
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
+- Setup Nagios+nrpe
+- Import check scripts 
 
 * GNU bash, version 4.3.30(1)-release
 
@@ -83,8 +74,16 @@ Add additional notes about how to deploy this on a live system
 
 These scripts are locally git controlled within the package/archive. See "git log"
 ``` 
-git log
+$ git log
 ```
+## Motivation
+* My motivations for using bash:
+	- Comfortable with bash
+	- Native to unix/linux environments
+	- Low on resource consumption
+	- Few dependencies/requirements for functionality
+	- Fairly secure in comparison to other languages, and their dependencies. 
+	- Simple and flexible
 
 ## Acknowledgments
 
