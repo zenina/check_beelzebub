@@ -1,8 +1,13 @@
 #!/bin/bash
 # check_beelzebub_open_files
 
-# set default thresholds. These will be overwritten if arguments are passed through the cli
 
+#define regex pattern to be grepped from lsof
+regexpattern="'.*'.yaml'$'"
+#regexpattern=".*dyllib.*"
+
+
+# set default thresholds. These will be overwritten if arguments are passed through the cli
 # warning threshold
 wval=20
 
@@ -75,7 +80,8 @@ Gtag='\e[92m'
 Ytag='\e[93m'
 Rtag='\e[31m'
 Dtag='\e[39m'
-fileCount=$(lsof | grep beelzebub | egrep '.*'.yaml'$' | wc -l)
+fileCount=$(lsof | grep beelzebub | egrep ${regexpattern} | uniq -c | wc
+-l)
 if [[ -n "${fileCount}" ]]; then
 	if [[ "${fileCount}" -lt "${wval}" ]]; then
 		return_nrpe 0 "${Gtag}[GREEN]: Transaction file count (< ${wval}): | ${fileCount}${Dtag}"

@@ -87,6 +87,4 @@ $ git log
 	- Fairly secure in comparison to other languages, and their dependencies. 
 	- Simple and flexible
 
-## Acknowledgments
 
-* This was a cool code challenge. Thanks BrainTree!
