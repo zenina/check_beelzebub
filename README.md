@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Nagios monitoring scripts for beelzebub + unicorn
 
 check_beelzebub_open_files : Monitor number of .yaml data files the worker processes are using, report to Nagios.
@@ -88,3 +89,7 @@ $ git log
 	- Simple and flexible
 
 
+=======
+# check_beelzebub
+Beelzebub nrpe api checks for unicorn.rb 
+>>>>>>> 85617de469228af4a897b3c54b5aac899d3e74a5
